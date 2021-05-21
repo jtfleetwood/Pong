@@ -10,7 +10,7 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.Pong">
         <activity android:name=".PongActivity"
-
+                        android:screenOrientation="landscape"
                         android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
                                                 >
             <intent-filter>

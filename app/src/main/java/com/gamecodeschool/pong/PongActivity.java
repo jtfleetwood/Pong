@@ -21,6 +21,8 @@ public class PongActivity extends Activity {
 
         display.getSize(size);
 
+
+        // Passes in context, gives information on current state of the object.
         mPongGame = new PongGame(this, size.x, size.y);
 
         setContentView(mPongGame);
@@ -30,11 +32,15 @@ public class PongActivity extends Activity {
 
     protected void onResume() {
         super.onResume();
+
+        // Starting threads.
+        mPongGame.resume();
     }
 
     @Override
-
     protected void onPause() {
         super.onPause();
+        // Pausing threads.
+        mPongGame.pause();
     }
 }
