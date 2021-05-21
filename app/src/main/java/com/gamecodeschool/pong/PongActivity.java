@@ -1,6 +1,7 @@
 package com.gamecodeschool.pong;
 
 import android.app.Activity;
+import android.view.MotionEvent;
 import android.view.Window;
 import android.os.Bundle;
 import android.graphics.Point;

@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -19,14 +20,14 @@ public class PongGame extends SurfaceView implements Runnable {
     private int mScreenY;
     private int mFontSize;
     private int mFontMargin;
-    private Bat mBat;
-    private Ball mBall;
     private int mScore;
     private int mLives;
     private Thread mGameThread = null;
     // Volatile makes it safe to access variable from inside and outside of the thread.
     private volatile boolean mPlaying;
     private boolean mPaused = true;
+    private Bat mBat;
+    private Ball mBall;
 
     public PongGame(Context context, int x, int y){
 
@@ -40,6 +41,8 @@ public class PongGame extends SurfaceView implements Runnable {
 
         mOurHolder = getHolder();
         mPaint = new Paint();
+        mBall = new Ball(mScreenX);
+        mBat = new Bat(mScreenX, mScreenY);
 
         startNewGame();
 
@@ -48,6 +51,8 @@ public class PongGame extends SurfaceView implements Runnable {
     public void startNewGame() {
         mScore = 0;
         mLives = 3;
+
+        mBall.reset(mScreenX, mScreenY);
 
     }
 
@@ -64,13 +69,14 @@ public class PongGame extends SurfaceView implements Runnable {
             mPaint.setTextSize(mFontSize);
 
             mPaint.setColor(Color.argb(255, 255, 255, 255));
+            mCanvas.drawRect(mBall.getRect(), mPaint);
+            mCanvas.drawRect(mBat.getRect(), mPaint);
 
             mCanvas.drawText("Score: " + mScore + "   Lives: " + mLives, mFontMargin, mFontSize, mPaint);
 
             if (DEBUGGING){
                 printDebuggingText();
             }
-
 
             // Frees up the memory to be accessed again, and posts the new canvas.
             // Happens every single frame of animation.
@@ -113,7 +119,8 @@ public class PongGame extends SurfaceView implements Runnable {
     }
 
     private void update() {
-        // updating object data.
+        mBall.update(mFPS);
+        mBat.update(mFPS);
     }
 
     private void detectCollisions() {
@@ -141,5 +148,31 @@ public class PongGame extends SurfaceView implements Runnable {
         mGameThread = new Thread(this);
 
         mGameThread.start();
+    }
+
+    @Override
+
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+        switch(motionEvent.getAction() & MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_DOWN:
+                mPaused = false;
+
+                if (motionEvent.getX() > mScreenX / 2) {
+                    mBat.SetMovementState(mBat.RIGHT);
+                }
+
+                else {
+                    mBat.SetMovementState(mBat.LEFT);
+                }
+
+                break;
+
+            case MotionEvent.ACTION_UP:
+                mBat.SetMovementState(mBat.STOPPED);
+
+                break;
+        }
+
+        return true;
     }
 }
