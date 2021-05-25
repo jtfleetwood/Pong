@@ -191,7 +191,7 @@ public class PongGame extends SurfaceView implements Runnable {
             }
         }
 
-        if (mBall.getRect().bottom < 0) {
+        if (mBall.getRect().top < 0) {
             mBall.reverseYVelocity();
             mSP.play(mBoopID, 1, 1, 0, 0, 1);
         }
