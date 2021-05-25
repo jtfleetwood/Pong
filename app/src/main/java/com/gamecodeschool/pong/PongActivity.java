@@ -30,7 +30,6 @@ public class PongActivity extends Activity {
     }
 
     @Override
-
     protected void onResume() {
         super.onResume();
 
@@ -44,4 +43,5 @@ public class PongActivity extends Activity {
         // Pausing threads.
         mPongGame.pause();
     }
+
 }

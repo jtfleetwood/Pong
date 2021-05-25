@@ -25,7 +25,7 @@ public class Ball {
     }
 
     void reverseXVelocity(){
-        mXVelocity = mXVelocity;
+        mXVelocity = -mXVelocity;
     }
 
     void update(long fps) {
