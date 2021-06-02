@@ -18,6 +18,13 @@ import android.view.SurfaceView;
 
 import java.io.IOException;
 
+/**
+ * This class extends the SurfaceView class and implements the Runnable interface. Allowing us to provide a view to the
+ * user and provide some context as to how we want our thread (game loop) to execute. PongGame pretty much runs the all of the
+ * mechanics that comes with user game play (view, drawing, collision detection, game loop implementation, etc.) As you can see
+ * below this class is composed of many different objects that contribute to the above discussed functionality.
+ */
+
 public class PongGame extends SurfaceView implements Runnable {
     private final boolean DEBUGGING = true;
     private final SurfaceHolder mOurHolder;
@@ -45,6 +52,21 @@ public class PongGame extends SurfaceView implements Runnable {
     private int mBopID = -1;
     private int mMissID = -1;
 
+    /**
+     * Below we have our parametrized constructor.
+     * @param context Passes in information regarding our user's current device state and display information. Is actually
+     * passed into our Parent class's constructor so that our PongGame object (which is of type view) knows what to display
+     * and how to display (resolution) if any previous activity was unfinished.
+     * @param x Contains resolution x-size (# of pixels).
+     * @param y Contains resolution y-size (# of pixels).
+     * Both above parameters are used for formatting drawing activities.
+     *
+     * This parametrized constructor essentially accomplishes setting the user's view based off their existing context,
+     * and properly initializes game objects/sounds based off screen resolution and device OS version. Once, all of
+     * the above is properly set up we call to start a new game.
+     * @exception IOException relates to attempting to load sound files through our asset manager (manages audio files).
+     * @see PongGame#startNewGame()
+     */
     public PongGame(Context context, int x, int y){
 
         // of type view class that takes in type context class within activity class. Gives surface view information relating to object state.
@@ -99,6 +121,11 @@ public class PongGame extends SurfaceView implements Runnable {
 
     }
 
+    /**
+     * Below method starts a new game. Which requires resetting user score and number of lives. Also resetting the
+     * positions of our objects in view (ball, and two obstacles used).
+     */
+
     public void startNewGame() {
 
         mScore = 0;
@@ -109,6 +136,23 @@ public class PongGame extends SurfaceView implements Runnable {
         mAddObstacle.reset(mScreenX - 225, (float) (mScreenY / 2.5));
 
     }
+
+    /**
+     * Below draw() method controls all of our drawing operations and is called within our game loop.
+     * @see PongGame#run()
+     * Quick notes:
+     * @see PongGame#mOurHolder Pretty much provides another layer to our user view which allows us to draw surfaces
+     * from separate threads.
+     * @see PongGame#mOurHolder#getSurface()#isValid() Since asynchronous execution of game loop and OS interaction is
+     * occuring, we need to ensure the memory associated with our user's view or surface is not currently being manipulated before
+     * we begin to draw on it.
+     * @see PongGame#mOurHolder#lockCanvas() Locks surface to ensure no other component of our program tries to access
+     * that memory while we are manipulating it.
+     * @see PongGame#mOurHolder#unlockCanvasAndPost() Unlocks the memory associated with the surface and posts changes or
+     * new drawings to the overall user view.
+     *
+     * This method is drawing the current positions of our ball, bat, and obstacles.
+     */
 
     private void draw() {
         // Validates that area of memory that we want to manipulate to represent our frame of drawing is available.
@@ -144,6 +188,11 @@ public class PongGame extends SurfaceView implements Runnable {
         }
     }
 
+    /**
+     * Method used for debugging purposes. Displays our user's FPS to the screen as well.
+     * @see PongGame#mFPS
+     */
+
     private void printDebuggingText() {
         int debugSize = mFontSize / 2;
         int debugStart = 150;
@@ -154,31 +203,57 @@ public class PongGame extends SurfaceView implements Runnable {
 
     }
 
-    // Game loop is implemented below.
-    // What thread runs.
-    // Is the parameter passed into the thread variable.
+    /**
+     * Below is our game loop that is overridden through implementing the Runnable interface.
+     * Our game loop consists of:
+     * 1. Updating objects (moving them, collision detection)
+     * 2. Drawing updated position of objects
+     * @see PongGame#draw()
+     * 3. Responding to any touches from the user.
+     *
+     */
     @Override
     public void run() {
+        /** mPlaying used to let us know if the user has exited the game or not */
+        /** Still using the below condition in the case our thread was unable to be stopped
+         * @exception InterruptedException Let's us know thread was unable to be stopped.
+         */
         while (mPlaying) {
             long frameStartTime = System.currentTimeMillis();
 
+            /** If the user runs out of lives and new game needs to be started do not draw updated positions */
             if (!mPaused){
+                /** @see PongGame#update() */
                 update();
+
+                /** @see PongGame#detectCollisions() */
                 detectCollisions();
 
             }
 
+            /** @see PongGame#draw() */
             draw();
 
+            /**
+             * To calculate FPS and further provide our objects how many pixels to move per animation, we are calculating the
+             * amount of time it takes for one singular loop or animation to be drawn.
+             */
             long timeThisFrame = System.currentTimeMillis() - frameStartTime;
 
+            /** If some bug occurred that caused no animation to be drawn, do not update FPS value with invalid number */
             if (timeThisFrame > 0) {
                 mFPS = MILLIS_IN_SECOND / timeThisFrame;
             }
         }
-
     }
 
+    /**
+     * This method will be called within our game loop.
+     * @see PongGame#run()
+     *
+     * These update methods are individual to each type of object and pretty much move our objects' coordinates based
+     * off movement velocity and FPS. Notice how an FPS value is passed into each update method.
+     */
     private void update() {
         mBall.update(mFPS);
         mBat.update(mFPS);
@@ -186,7 +261,22 @@ public class PongGame extends SurfaceView implements Runnable {
         mAddObstacle.update(mFPS);
     }
 
+    /**
+     * This method controls all collision detection and further needed actions upon a collision. Such as a ball hitting
+     * the left boundary of the surface, and then reversing it's x velocity to keep it within the screen view. We are
+     * also updating score and number of lives for the user based off collisions occurring (if ball hits bottom of screen,
+     * then the player loses a life, etc.)
+     * @see Ball#batBounce(RectF)
+     * @see Ball#increaseVelocity()
+     * @see Ball#reverseXVelocity()
+     * @see Ball#reverseYVelocity()
+     * @see Obstacle#reverseVelocity()
+     */
     private void detectCollisions() {
+
+        /** Checking to see if bat and ball intersected, if so then calling batBounce, increasing velocity, and increasing
+         * score. Also playing sound.
+         */
         if(RectF.intersects(mBat.getRect(), mBall.getRect())) {
             mBall.batBounce(mBat.getRect());
             mBall.increaseVelocity();
@@ -194,6 +284,7 @@ public class PongGame extends SurfaceView implements Runnable {
             mSP.play(mBeepID, 1, 1, 0, 0, 1);
         }
 
+        /** Checking to see if ball collided with obstacle, same goes for following call */
         if (RectF.intersects(mObstacle.getObstacle(), mBall.getRect())) {
             mBall.batBounce(mObstacle.getObstacle());
         }
@@ -202,11 +293,13 @@ public class PongGame extends SurfaceView implements Runnable {
             mBall.batBounce(mAddObstacle.getObstacle());
         }
 
+        /** Checking if ball touched bottom of screen */
         if (mBall.getRect().bottom > mScreenY) {
             mBall.reverseYVelocity();
             mLives--;
             mSP.play(mMissID, 1, 1, 0, 0, 1);
 
+            /** if player runs out of lives, pause updating/detection of objects */
             if (mLives == 0) {
                 mPaused = true;
 
@@ -214,6 +307,7 @@ public class PongGame extends SurfaceView implements Runnable {
             }
         }
 
+        /** Will not repeat with below statements, simply checking for object collisions with the boundaries of our view */
         if (mBall.getRect().top < 0) {
             mBall.reverseYVelocity();
             mSP.play(mBoopID, 1, 1, 0, 0, 1);
@@ -246,9 +340,17 @@ public class PongGame extends SurfaceView implements Runnable {
         }
     }
 
-    // Called when player quits the game.
+    /**
+     * Pause method that is called within:
+     * @see PongActivity#onPause()
+     *
+     * This method pauses or tries to pause the game loop if the user exits the app.
+     * @exception InterruptedException in case error occurs with stopping thread or game loop.
+     */
     public void pause() {
+        /** In the case that our game loop fails to stop, this will prevent any execution from occurring */
         mPlaying = false;
+        /** @see PongGame#run() */
 
         try {
             // stopping the thread.
@@ -260,22 +362,44 @@ public class PongGame extends SurfaceView implements Runnable {
         }
     }
 
-    // Called when player starts game.
+    /**
+     * Just like the above method:
+     * @see PongGame#pause()
+     *
+     * We are implementing functionality to start execution of our thread (game loop) when the game is resumed or started.
+     * @see PongActivity#onResume()
+     */
     public void resume() {
         mPlaying = true;
 
+        /** "this" reference is referencing our run method as a parameter, to get tasks
+         * @see PongGame#run()
+         */
         mGameThread = new Thread(this);
 
         mGameThread.start();
     }
 
+    /**
+     * Overridden method within the view class that detects user interactions with our surface (current view).
+     *
+     * This method, based off the location and nature in which the user touches the screen, indicates whether the bat
+     * needs to be updated left/right or not moved.
+     * @see Bat#SetMovementState(int)
+     * @param motionEvent Is the actual event of the user touching the screen. Contains information about the touch, such
+     * as where it happened. We can filter the information in this variable through bitwise comparison to get the
+     * information we want.
+     * @return We return true to indicate that a touch occurred.
+     */
     @Override
-
     public boolean onTouchEvent(MotionEvent motionEvent) {
+        /** Bitwise comparison takes place below that filters information contained in motionEvent object */
         switch(motionEvent.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
+                /** If a new game starts, and the user has not touched the screen yet, lets game loop know to start updating/detecting. */
                 mPaused = false;
 
+                /** Below conditions set movement state based off of where the screen was touched (left side = left movement) */
                 if (motionEvent.getX() > mScreenX / 2) {
                     mBat.SetMovementState(mBat.RIGHT);
                 }
@@ -286,6 +410,7 @@ public class PongGame extends SurfaceView implements Runnable {
 
                 break;
 
+                /** If finger was lifted up, stop moving the bat */
             case MotionEvent.ACTION_UP:
                 mBat.SetMovementState(mBat.STOPPED);
 
