@@ -36,6 +36,8 @@ public class PongGame extends SurfaceView implements Runnable {
     private volatile boolean mPlaying;
     private boolean mPaused = true;
     private Bat mBat;
+    private Obstacle mObstacle;
+    private Obstacle mAddObstacle;
     private Ball mBall;
     private SoundPool mSP;
     private int mBeepID = -1;
@@ -57,6 +59,8 @@ public class PongGame extends SurfaceView implements Runnable {
         mPaint = new Paint();
         mBall = new Ball(mScreenX);
         mBat = new Bat(mScreenX, mScreenY);
+        mObstacle = new Obstacle(mScreenX, mScreenY);
+        mAddObstacle = new Obstacle(mScreenX, mScreenY);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             AudioAttributes audioAttributes = new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build();
@@ -101,6 +105,8 @@ public class PongGame extends SurfaceView implements Runnable {
         mLives = 3;
 
         mBall.reset(mScreenX, mScreenY);
+        mObstacle.reset(0, 0);
+        mAddObstacle.reset(mScreenX - 225, (float) (mScreenY / 2.5));
 
     }
 
@@ -119,6 +125,11 @@ public class PongGame extends SurfaceView implements Runnable {
             mPaint.setColor(Color.argb(255, 255, 255, 255));
             mCanvas.drawRect(mBall.getRect(), mPaint);
             mCanvas.drawRect(mBat.getRect(), mPaint);
+
+            mPaint.setColor(Color.argb(255, 0, 0, 0));
+            mCanvas.drawRect(mObstacle.getObstacle(), mPaint);
+            mCanvas.drawRect(mAddObstacle.getObstacle(), mPaint);
+            mPaint.setColor(Color.argb(255, 255, 255, 255));
 
             mCanvas.drawText("Score: " + mScore + "   Lives: " + mLives, mFontMargin, mFontSize, mPaint);
 
@@ -140,6 +151,7 @@ public class PongGame extends SurfaceView implements Runnable {
         mPaint.setTextSize(debugSize);
 
         mCanvas.drawText("FPS: " + mFPS, 25, debugStart - 50, mPaint);
+
     }
 
     // Game loop is implemented below.
@@ -153,6 +165,7 @@ public class PongGame extends SurfaceView implements Runnable {
             if (!mPaused){
                 update();
                 detectCollisions();
+
             }
 
             draw();
@@ -169,14 +182,24 @@ public class PongGame extends SurfaceView implements Runnable {
     private void update() {
         mBall.update(mFPS);
         mBat.update(mFPS);
+        mObstacle.update(mFPS);
+        mAddObstacle.update(mFPS);
     }
 
     private void detectCollisions() {
         if(RectF.intersects(mBat.getRect(), mBall.getRect())) {
             mBall.batBounce(mBat.getRect());
             mBall.increaseVelocity();
-            mScore ++;
+            mScore++;
             mSP.play(mBeepID, 1, 1, 0, 0, 1);
+        }
+
+        if (RectF.intersects(mObstacle.getObstacle(), mBall.getRect())) {
+            mBall.batBounce(mObstacle.getObstacle());
+        }
+
+        if (RectF.intersects(mAddObstacle.getObstacle(), mBall.getRect())) {
+            mBall.batBounce(mAddObstacle.getObstacle());
         }
 
         if (mBall.getRect().bottom > mScreenY) {
@@ -204,6 +227,22 @@ public class PongGame extends SurfaceView implements Runnable {
         if (mBall.getRect().right > mScreenX) {
             mBall.reverseXVelocity();
             mSP.play(mBopID, 1, 1, 0, 0, 1);
+        }
+
+        if (mObstacle.getObstacle().right > mScreenX) {
+            mObstacle.reverseVelocity();
+        }
+
+        if (mObstacle.getObstacle().left < 0) {
+            mObstacle.reverseVelocity();
+        }
+
+        if (mAddObstacle.getObstacle().right > mScreenX) {
+            mAddObstacle.reverseVelocity();
+        }
+
+        if (mAddObstacle.getObstacle().left < 0) {
+            mAddObstacle.reverseVelocity();
         }
     }
 
@@ -255,4 +294,6 @@ public class PongGame extends SurfaceView implements Runnable {
 
         return true;
     }
+
+
 }

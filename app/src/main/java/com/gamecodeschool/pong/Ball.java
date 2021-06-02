@@ -36,6 +36,10 @@ public class Ball {
 
     }
 
+    float getmBallWidth () {
+        return mBallWidth;
+    }
+
     void reset(int x, int y) {
         mRect.left = x / 2;
         mRect.top = 0;
