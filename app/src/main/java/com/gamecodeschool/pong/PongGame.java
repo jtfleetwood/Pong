@@ -132,7 +132,7 @@ public class PongGame extends SurfaceView implements Runnable {
         mLives = 3;
 
         mBall.reset(mScreenX, mScreenY);
-        mObstacle.reset(0, 0);
+        mObstacle.reset(0, 100);
         mAddObstacle.reset(mScreenX - 225, (float) (mScreenY / 2.5));
 
     }

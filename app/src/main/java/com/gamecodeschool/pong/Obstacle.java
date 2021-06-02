@@ -18,6 +18,8 @@ public class Obstacle {
     private float mYCoord;
     private float mOSpeed;
     private float mLength;
+    private float mHeight;
+    private float mScreenX;
 
     /** Parametrized constructor used below
      * Assigns obstacle width/height based off of screen resolution.
@@ -30,23 +32,14 @@ public class Obstacle {
      */
     public Obstacle(int sx, int sy) {
 
-        float height = sy / 20;
         mLength = sx / 8;
         mOSpeed = (sx / 3);
-
+        mHeight = sy / 20;
         // If an obstacle already exists, set the y coordinate to be lower towards the screen so they do not overlap.
-        if (count == 1) {
-            mXCoord = sx - 225;
-            mYCoord = (float) (sy / 2.5);
-        }
-
-        else if (count == 0){
-            mXCoord = 0;
-            mYCoord = 50;
-        }
-
-        mRect = new RectF(mXCoord, mYCoord, mXCoord + mLength, mYCoord + height);
-        count += 1;
+        mXCoord = 0;
+        mYCoord = 0;
+        mScreenX = sx;
+        mRect = new RectF(mXCoord, mYCoord, mXCoord + mLength, mYCoord + mHeight);
     }
 
      /** Accessor method used below. Used in drawing/collision detection.
@@ -70,8 +63,21 @@ public class Obstacle {
      */
     public void reset(float sx, float sy) {
 
-        mXCoord = sx;
-        mYCoord = sy;
+        if (sx == 0) {
+            mRect.right = sx + mLength;
+            mRect.left = sx;
+        }
+
+        else {
+            reverseVelocity();
+            mRect.right = sx;
+            mRect.left = sx - mLength;
+        }
+
+        mRect.top = sy;
+        mRect.bottom = sy + mHeight;
+
+
     }
 
     /**
@@ -80,9 +86,16 @@ public class Obstacle {
      */
     public void update(long fps) {
         // Notice how top/bottom of rect is not updated as the obstacles never move up/down.
-        mXCoord += (mOSpeed / fps);
-        mRect.right = mXCoord + mLength;
-        mRect.left = mXCoord;
+        if (mRect.left < 0) {
+            mRect.left = 0;
+        }
+
+        else if (mRect.right > mScreenX) {
+            mRect.right = mScreenX;
+        }
+
+        mRect.right += (mOSpeed / fps);
+        mRect.left = mRect.right - mLength;
 
     }
 
