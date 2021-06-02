@@ -16,8 +16,6 @@ public class Bat {
     private float mBatSpeed;
     private int mScreenX;
 
-    /** Below are indicators used within setMovementState to indicate where the bat needs to be moved, and if it does */
-    /** Constants used */
     final int STOPPED = 0;
     final int LEFT = 1;
     final int RIGHT = 2;
@@ -34,7 +32,6 @@ public class Bat {
 
         mLength = mScreenX / 8;
 
-        /** Only need to initialize height once as the bat will only move laterally */
         float height = sy / 40;
 
         mXCoord = mScreenX / 2;
@@ -85,7 +82,6 @@ public class Bat {
             mXCoord = mXCoord + (mBatSpeed / fps);
         }
 
-        /** Collision detection taking place in below conditional statements */
         if (mXCoord < 0) {
             mXCoord = 0;
         }

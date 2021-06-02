@@ -15,9 +15,7 @@ import android.view.Display;
  * properly.
  */
 public class PongActivity extends Activity {
-    /**
-     * You can see below that this class is composed of a PongGame object which contains our userView and game mechanics.
-     */
+
     private PongGame mPongGame;
 
     /**

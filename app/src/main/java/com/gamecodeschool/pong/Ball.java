@@ -23,7 +23,6 @@ public class Ball {
         mBallWidth = screenX / 100;
         mBallHeight = screenX / 100;
 
-        /** Composition occurring below as the ball is actually a rect, just as the bat was */
         mRect = new RectF();
     }
 

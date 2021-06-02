@@ -214,33 +214,20 @@ public class PongGame extends SurfaceView implements Runnable {
      */
     @Override
     public void run() {
-        /** mPlaying used to let us know if the user has exited the game or not */
-        /** Still using the below condition in the case our thread was unable to be stopped
-         * @exception InterruptedException Let's us know thread was unable to be stopped.
-         */
         while (mPlaying) {
             long frameStartTime = System.currentTimeMillis();
 
-            /** If the user runs out of lives and new game needs to be started do not draw updated positions */
             if (!mPaused){
-                /** @see PongGame#update() */
                 update();
 
-                /** @see PongGame#detectCollisions() */
                 detectCollisions();
 
             }
 
-            /** @see PongGame#draw() */
             draw();
 
-            /**
-             * To calculate FPS and further provide our objects how many pixels to move per animation, we are calculating the
-             * amount of time it takes for one singular loop or animation to be drawn.
-             */
             long timeThisFrame = System.currentTimeMillis() - frameStartTime;
 
-            /** If some bug occurred that caused no animation to be drawn, do not update FPS value with invalid number */
             if (timeThisFrame > 0) {
                 mFPS = MILLIS_IN_SECOND / timeThisFrame;
             }
@@ -274,9 +261,6 @@ public class PongGame extends SurfaceView implements Runnable {
      */
     private void detectCollisions() {
 
-        /** Checking to see if bat and ball intersected, if so then calling batBounce, increasing velocity, and increasing
-         * score. Also playing sound.
-         */
         if(RectF.intersects(mBat.getRect(), mBall.getRect())) {
             mBall.batBounce(mBat.getRect());
             mBall.increaseVelocity();
@@ -284,7 +268,6 @@ public class PongGame extends SurfaceView implements Runnable {
             mSP.play(mBeepID, 1, 1, 0, 0, 1);
         }
 
-        /** Checking to see if ball collided with obstacle, same goes for following call */
         if (RectF.intersects(mObstacle.getObstacle(), mBall.getRect())) {
             mBall.batBounce(mObstacle.getObstacle());
         }
@@ -293,13 +276,11 @@ public class PongGame extends SurfaceView implements Runnable {
             mBall.batBounce(mAddObstacle.getObstacle());
         }
 
-        /** Checking if ball touched bottom of screen */
         if (mBall.getRect().bottom > mScreenY) {
             mBall.reverseYVelocity();
             mLives--;
             mSP.play(mMissID, 1, 1, 0, 0, 1);
 
-            /** if player runs out of lives, pause updating/detection of objects */
             if (mLives == 0) {
                 mPaused = true;
 
@@ -307,7 +288,6 @@ public class PongGame extends SurfaceView implements Runnable {
             }
         }
 
-        /** Will not repeat with below statements, simply checking for object collisions with the boundaries of our view */
         if (mBall.getRect().top < 0) {
             mBall.reverseYVelocity();
             mSP.play(mBoopID, 1, 1, 0, 0, 1);
@@ -348,9 +328,7 @@ public class PongGame extends SurfaceView implements Runnable {
      * @exception InterruptedException in case error occurs with stopping thread or game loop.
      */
     public void pause() {
-        /** In the case that our game loop fails to stop, this will prevent any execution from occurring */
         mPlaying = false;
-        /** @see PongGame#run() */
 
         try {
             // stopping the thread.
@@ -372,9 +350,6 @@ public class PongGame extends SurfaceView implements Runnable {
     public void resume() {
         mPlaying = true;
 
-        /** "this" reference is referencing our run method as a parameter, to get tasks
-         * @see PongGame#run()
-         */
         mGameThread = new Thread(this);
 
         mGameThread.start();
@@ -393,13 +368,11 @@ public class PongGame extends SurfaceView implements Runnable {
      */
     @Override
     public boolean onTouchEvent(MotionEvent motionEvent) {
-        /** Bitwise comparison takes place below that filters information contained in motionEvent object */
+
         switch(motionEvent.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
-                /** If a new game starts, and the user has not touched the screen yet, lets game loop know to start updating/detecting. */
                 mPaused = false;
 
-                /** Below conditions set movement state based off of where the screen was touched (left side = left movement) */
                 if (motionEvent.getX() > mScreenX / 2) {
                     mBat.SetMovementState(mBat.RIGHT);
                 }
@@ -410,7 +383,6 @@ public class PongGame extends SurfaceView implements Runnable {
 
                 break;
 
-                /** If finger was lifted up, stop moving the bat */
             case MotionEvent.ACTION_UP:
                 mBat.SetMovementState(mBat.STOPPED);
 
