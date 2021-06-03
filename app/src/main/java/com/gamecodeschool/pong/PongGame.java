@@ -57,7 +57,7 @@ public class PongGame extends SurfaceView implements Runnable {
      * @param context Passes in information regarding our user's current device state and display information. Is actually
      * passed into our Parent class's constructor so that our PongGame object (which is of type view) knows what to display
      * and how to display (resolution) if any previous activity was unfinished.
-     * @param x Contains resolution x-size (# of pixels).
+     * @param x Contains resolution x-size (# of pixels).z
      * @param y Contains resolution y-size (# of pixels).
      * Both above parameters are used for formatting drawing activities.
      *
